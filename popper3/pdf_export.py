@@ -15,28 +15,37 @@ from popper3.db import Card, Deck
 
 CARD_W = 69 * mm
 CARD_H = 96 * mm
+PRINT_COLS = 2
+PRINT_ROWS = 4
+CARDS_PER_PAGE = PRINT_COLS * PRINT_ROWS
 
 
 def export_cards_pdf(deck: Deck, cards: list[Card], path: str | Path) -> None:
     c = canvas.Canvas(str(path), pagesize=A4)
     page_w, page_h = A4
-    margin_x = (page_w - (2 * CARD_W)) / 2
-    margin_y = (page_h - (3 * CARD_H)) / 2
+    slot_w = CARD_H
+    slot_h = CARD_W
+    margin_x = (page_w - (PRINT_COLS * slot_w)) / 2
+    margin_y = (page_h - (PRINT_ROWS * slot_h)) / 2
     positions = []
-    for row in range(3):
-        for col in range(2):
-            x = margin_x + col * CARD_W
-            y = page_h - margin_y - (row + 1) * CARD_H
+    for row in range(PRINT_ROWS):
+        for col in range(PRINT_COLS):
+            x = margin_x + col * slot_w
+            y = page_h - margin_y - (row + 1) * slot_h
             positions.append((x, y))
 
     for index, card in enumerate(cards):
-        if index and index % 6 == 0:
+        if index and index % CARDS_PER_PAGE == 0:
             c.showPage()
-        x, y = positions[index % 6]
+        x, y = positions[index % CARDS_PER_PAGE]
+        c.saveState()
+        c.translate(x + CARD_H, y)
+        c.rotate(90)
         if card.card_type == "game":
-            draw_game_card(c, card, x, y)
+            draw_game_card(c, card, 0, 0)
         else:
-            draw_player_card(c, card, x, y)
+            draw_player_card(c, card, 0, 0)
+        c.restoreState()
     c.save()
 
 
