@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build outputs
+build/
+dist/
+dist_atualizado/
+*.spec.bak
+
+# Local app data and databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Generated exports
+*.pdf
+*.xlsx
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
