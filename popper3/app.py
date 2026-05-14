@@ -4,9 +4,9 @@ import sys
 import uuid
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QRectF, QSize
+from PySide6.QtCore import Qt, QPointF, QRectF, QSize
 from PIL import Image, ImageOps
-from PySide6.QtGui import QColor, QFont, QIcon, QImage, QLinearGradient, QPainter, QPixmap
+from PySide6.QtGui import QColor, QFont, QIcon, QImage, QLinearGradient, QPainter, QPen, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import (
     QApplication,
@@ -260,47 +260,90 @@ class CardPreview(QFrame):
             self._paint_player(painter, rect)
 
     def _paint_game(self, painter: QPainter, rect: QRectF) -> None:
-        self._frame(painter, rect, QColor("#F8FAFC"), QColor("#1E2A37"))
+        self._frame(painter, rect)
         title_rect = QRectF(rect.left() + 14, rect.top() + 14, rect.width() - 28, 32)
-        painter.setBrush(QColor("#253246"))
-        painter.setPen(Qt.NoPen)
-        painter.drawRoundedRect(title_rect, 8, 8)
-        self._text(painter, title_rect, self.title, 11, QColor("white"), True, Qt.AlignCenter)
+        self._panel(painter, title_rect)
+        self._text(painter, title_rect.adjusted(6, 0, -6, 0), self.title, 11, QColor("#F7EBC8"), True, Qt.AlignCenter)
         art_rect = QRectF(rect.left() + 18, rect.top() + 58, rect.width() - 36, rect.height() * 0.42)
         self._art(painter, art_rect)
         desc_rect = QRectF(rect.left() + 18, rect.bottom() - 118, rect.width() - 36, 86)
-        painter.setBrush(QColor("white"))
-        painter.drawRoundedRect(desc_rect, 8, 8)
-        self._text(painter, desc_rect.adjusted(10, 8, -10, -8), self.description, 9, QColor("#27313D"), False, Qt.AlignTop | Qt.TextWordWrap)
+        self._panel(painter, desc_rect)
+        self._text(painter, desc_rect.adjusted(10, 8, -10, -8), self.description, 9, QColor("#F7EBC8"), False, Qt.AlignTop | Qt.TextWordWrap)
         score_rect = QRectF(rect.right() - 50, rect.bottom() - 48, 36, 36)
+        painter.setPen(QPen(QColor("#F4C46A"), 2))
         painter.setBrush(QColor("#E23D28"))
         painter.drawEllipse(score_rect)
+        painter.setPen(QPen(QColor("#7C1F20"), 1))
+        painter.setBrush(Qt.NoBrush)
+        painter.drawEllipse(score_rect.adjusted(5, 5, -5, -5))
         self._text(painter, score_rect, str(self.score), 13, QColor("white"), True, Qt.AlignCenter)
 
     def _paint_player(self, painter: QPainter, rect: QRectF) -> None:
-        self._frame(painter, rect, QColor("#FBF7EF"), QColor("#272727"))
+        self._frame(painter, rect)
         art_rect = QRectF(rect.left() + 16, rect.top() + 22, rect.width() - 32, rect.height() * 0.56)
         self._art(painter, art_rect)
         title_rect = QRectF(rect.left() + 24, art_rect.bottom() + 10, rect.width() - 48, 34)
-        painter.setBrush(QColor("#111827"))
-        painter.setPen(Qt.NoPen)
-        painter.drawRoundedRect(title_rect, 8, 8)
-        self._text(painter, title_rect, self.title, 12, QColor("white"), True, Qt.AlignCenter)
+        self._panel(painter, title_rect)
+        self._text(painter, title_rect.adjusted(6, 0, -6, 0), self.title, 12, QColor("#F7EBC8"), True, Qt.AlignCenter)
         desc_rect = QRectF(rect.left() + 24, title_rect.bottom() + 12, rect.width() - 48, 58)
-        painter.setBrush(QColor("white"))
-        painter.drawRoundedRect(desc_rect, 8, 8)
-        self._text(painter, desc_rect.adjusted(10, 8, -10, -8), self.description, 9, QColor("#303030"), False, Qt.AlignTop | Qt.TextWordWrap)
+        self._panel(painter, desc_rect)
+        self._text(painter, desc_rect.adjusted(10, 8, -10, -8), self.description, 9, QColor("#F7EBC8"), False, Qt.AlignTop | Qt.TextWordWrap)
 
-    def _frame(self, painter: QPainter, rect: QRectF, fill: QColor, border: QColor) -> None:
-        painter.setBrush(fill)
-        painter.setPen(border)
+    def _frame(self, painter: QPainter, rect: QRectF) -> None:
+        gradient = QLinearGradient(rect.topLeft(), rect.bottomRight())
+        gradient.setColorAt(0, QColor("#06101F"))
+        gradient.setColorAt(0.58, QColor("#0B1830"))
+        gradient.setColorAt(1, QColor("#071326"))
+        painter.setBrush(gradient)
+        painter.setPen(QPen(QColor("#D99A3A"), 2))
         painter.drawRoundedRect(rect, 12, 12)
-        painter.setPen(QColor("#D1D5DB"))
+        painter.setPen(QPen(QColor("#F4C46A"), 1))
         painter.drawRect(rect.adjusted(8, 8, -8, -8))
+        painter.setPen(QPen(QColor("#6D411A"), 1))
+        painter.drawRect(rect.adjusted(14, 14, -14, -14))
+        self._corner(painter, rect.topLeft() + QPointF(14, 14), 1, 1)
+        self._corner(painter, rect.topRight() + QPointF(-14, 14), -1, 1)
+        self._corner(painter, rect.bottomLeft() + QPointF(14, -14), 1, -1)
+        self._corner(painter, rect.bottomRight() + QPointF(-14, -14), -1, -1)
+        self._stars(painter, rect)
+
+    def _corner(self, painter: QPainter, point, sx: int, sy: int) -> None:
+        painter.setPen(QPen(QColor("#D99A3A"), 2))
+        painter.drawLine(point, point + QPointF(sx * 24, 0))
+        painter.drawLine(point, point + QPointF(0, sy * 24))
+        painter.setPen(QPen(QColor("#F4C46A"), 1))
+        inner = point + QPointF(sx * 8, sy * 8)
+        painter.drawLine(inner, inner + QPointF(sx * 14, 0))
+        painter.drawLine(inner, inner + QPointF(0, sy * 14))
+
+    def _stars(self, painter: QPainter, rect: QRectF) -> None:
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QColor("#B7742C"))
+        for px, py, size in [
+            (0.20, 0.18, 3),
+            (0.76, 0.21, 2),
+            (0.32, 0.35, 2),
+            (0.86, 0.42, 3),
+            (0.15, 0.61, 2),
+            (0.70, 0.70, 2),
+            (0.25, 0.84, 2),
+            (0.80, 0.88, 3),
+        ]:
+            painter.drawRect(QRectF(rect.left() + rect.width() * px, rect.top() + rect.height() * py, size, size))
+
+    def _panel(self, painter: QPainter, rect: QRectF) -> None:
+        painter.setBrush(QColor("#071326"))
+        painter.setPen(QPen(QColor("#D99A3A"), 1))
+        painter.drawRoundedRect(rect, 8, 8)
+        painter.setPen(QPen(QColor("#4F3217"), 1))
+        painter.drawRoundedRect(rect.adjusted(4, 4, -4, -4), 5, 5)
 
     def _art(self, painter: QPainter, rect: QRectF) -> None:
         painter.setPen(Qt.NoPen)
-        painter.setBrush(QColor("#D9DEE5"))
+        painter.setBrush(QColor("#09172B"))
+        painter.drawRoundedRect(rect, 8, 8)
+        painter.setPen(QPen(QColor("#D99A3A"), 1))
+        painter.setBrush(Qt.NoBrush)
         painter.drawRoundedRect(rect, 8, 8)
         if self.splash_path and Path(self.splash_path).exists():
             pixmap = image_pixmap(self.splash_path, rect.size().toSize())
@@ -309,8 +352,10 @@ class CardPreview(QFrame):
                 x = rect.left() + (rect.width() - scaled.width()) / 2
                 y = rect.top() + (rect.height() - scaled.height()) / 2
                 painter.drawPixmap(int(x), int(y), scaled)
+                painter.setPen(QPen(QColor("#F4C46A"), 1))
+                painter.drawRoundedRect(rect.adjusted(4, 4, -4, -4), 6, 6)
                 return
-        self._text(painter, rect, "Splash Art", 11, QColor("#667085"), True, Qt.AlignCenter)
+        self._text(painter, rect, "Splash Art", 11, QColor("#8FA6BD"), True, Qt.AlignCenter)
 
     def _text(self, painter: QPainter, rect: QRectF, text: str, size: int, color: QColor, bold: bool, flags: Qt.AlignmentFlag) -> None:
         font = QFont("Segoe UI", size)

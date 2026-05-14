@@ -18,6 +18,13 @@ CARD_H = 96 * mm
 PRINT_COLS = 2
 PRINT_ROWS = 4
 CARDS_PER_PAGE = PRINT_COLS * PRINT_ROWS
+DARK = colors.HexColor("#06101F")
+DARK_2 = colors.HexColor("#0B1830")
+GOLD = colors.HexColor("#D99A3A")
+GOLD_LIGHT = colors.HexColor("#F4C46A")
+CYAN = colors.HexColor("#4BC7F2")
+RED = colors.HexColor("#D84B42")
+TEXT = colors.HexColor("#F7EBC8")
 
 
 def export_cards_pdf(deck: Deck, cards: list[Card], path: str | Path) -> None:
@@ -76,48 +83,100 @@ def export_report_pdf(deck: Deck, cards: list[Card], path: str | Path) -> None:
 
 def draw_game_card(c: canvas.Canvas, card: Card, x: float, y: float) -> None:
     c.saveState()
-    _frame(c, x, y, colors.HexColor("#1E2A37"), colors.HexColor("#F8FAFC"))
-    c.setFillColor(colors.HexColor("#253246"))
-    c.roundRect(x + 4 * mm, y + CARD_H - 13 * mm, CARD_W - 8 * mm, 9 * mm, 2 * mm, stroke=0, fill=1)
-    _center_text(c, card.title, x + CARD_W / 2, y + CARD_H - 10 * mm, 9, colors.white, bold=True)
-    _image_or_placeholder(c, card.splash_path, x + 6 * mm, y + 42 * mm, CARD_W - 12 * mm, 38 * mm)
-    c.setFillColor(colors.HexColor("#FFFFFF"))
-    c.roundRect(x + 6 * mm, y + 10 * mm, CARD_W - 12 * mm, 28 * mm, 2 * mm, stroke=0, fill=1)
-    _wrapped_text(c, card.description, x + 9 * mm, y + 14 * mm, CARD_W - 18 * mm, 21 * mm, 7.2, colors.HexColor("#27313D"))
-    c.setFillColor(colors.HexColor("#E23D28"))
-    c.circle(x + CARD_W - 10 * mm, y + 9 * mm, 6 * mm, stroke=0, fill=1)
-    _center_text(c, str(card.score or 0), x + CARD_W - 10 * mm, y + 7.5 * mm, 10, colors.white, bold=True)
+    _frame(c, x, y)
+    _panel(c, x + 4 * mm, y + CARD_H - 15 * mm, CARD_W - 8 * mm, 10 * mm)
+    _center_text(c, card.title, x + CARD_W / 2, y + CARD_H - 11.3 * mm, 8.7, TEXT, bold=True, limit=28)
+    _image_or_placeholder(c, card.splash_path, x + 6 * mm, y + 43 * mm, CARD_W - 12 * mm, 36 * mm)
+    _panel(c, x + 6 * mm, y + 12 * mm, CARD_W - 12 * mm, 27 * mm)
+    _wrapped_text(c, card.description, x + 9 * mm, y + 15 * mm, CARD_W - 20 * mm, 20 * mm, 6.9, TEXT)
+    _score_medallion(c, x + CARD_W - 10 * mm, y + 9.2 * mm, str(card.score or 0))
     c.restoreState()
 
 
 def draw_player_card(c: canvas.Canvas, card: Card, x: float, y: float) -> None:
     c.saveState()
-    _frame(c, x, y, colors.HexColor("#272727"), colors.HexColor("#FBF7EF"))
-    _image_or_placeholder(c, card.splash_path, x + 5 * mm, y + 36 * mm, CARD_W - 10 * mm, 50 * mm)
-    c.setFillColor(colors.HexColor("#111827"))
-    c.roundRect(x + 7 * mm, y + 27 * mm, CARD_W - 14 * mm, 10 * mm, 2 * mm, stroke=0, fill=1)
-    _center_text(c, card.title, x + CARD_W / 2, y + 30.7 * mm, 9.5, colors.white, bold=True)
-    c.setFillColor(colors.HexColor("#FFFFFF"))
-    c.roundRect(x + 7 * mm, y + 8 * mm, CARD_W - 14 * mm, 16 * mm, 2 * mm, stroke=0, fill=1)
-    _wrapped_text(c, card.description, x + 10 * mm, y + 11 * mm, CARD_W - 20 * mm, 10 * mm, 7.2, colors.HexColor("#303030"))
+    _frame(c, x, y)
+    _image_or_placeholder(c, card.splash_path, x + 6 * mm, y + 38 * mm, CARD_W - 12 * mm, 47 * mm)
+    _panel(c, x + 7 * mm, y + 26 * mm, CARD_W - 14 * mm, 10 * mm)
+    _center_text(c, card.title, x + CARD_W / 2, y + 29.7 * mm, 9.3, TEXT, bold=True, limit=27)
+    _panel(c, x + 7 * mm, y + 8 * mm, CARD_W - 14 * mm, 15 * mm)
+    _wrapped_text(c, card.description, x + 10 * mm, y + 10.5 * mm, CARD_W - 20 * mm, 10 * mm, 6.9, TEXT)
     c.restoreState()
 
 
-def _frame(c: canvas.Canvas, x: float, y: float, border: colors.Color, fill: colors.Color) -> None:
-    c.setFillColor(fill)
-    c.setStrokeColor(border)
-    c.setLineWidth(1.2)
+def _frame(c: canvas.Canvas, x: float, y: float) -> None:
+    c.setFillColor(DARK)
+    c.setStrokeColor(GOLD)
+    c.setLineWidth(1.1)
     c.roundRect(x, y, CARD_W, CARD_H, 3 * mm, stroke=1, fill=1)
-    c.setStrokeColor(colors.HexColor("#D1D5DB"))
+    c.setFillColor(DARK_2)
+    c.roundRect(x + 2 * mm, y + 2 * mm, CARD_W - 4 * mm, CARD_H - 4 * mm, 2 * mm, stroke=0, fill=1)
+    c.setStrokeColor(GOLD_LIGHT)
+    c.setLineWidth(0.45)
+    c.rect(x + 2.6 * mm, y + 2.6 * mm, CARD_W - 5.2 * mm, CARD_H - 5.2 * mm, stroke=1, fill=0)
+    c.setStrokeColor(colors.HexColor("#6D411A"))
+    c.setLineWidth(0.25)
+    c.rect(x + 3.8 * mm, y + 3.8 * mm, CARD_W - 7.6 * mm, CARD_H - 7.6 * mm, stroke=1, fill=0)
+    _corner(c, x + 3.6 * mm, y + CARD_H - 3.6 * mm, 1, -1)
+    _corner(c, x + CARD_W - 3.6 * mm, y + CARD_H - 3.6 * mm, -1, -1)
+    _corner(c, x + 3.6 * mm, y + 3.6 * mm, 1, 1)
+    _corner(c, x + CARD_W - 3.6 * mm, y + 3.6 * mm, -1, 1)
+    _stars(c, x, y)
+
+
+def _corner(c: canvas.Canvas, x: float, y: float, sx: int, sy: int) -> None:
+    c.setStrokeColor(GOLD)
+    c.setLineWidth(0.7)
+    c.line(x, y, x + sx * 6 * mm, y)
+    c.line(x, y, x, y + sy * 6 * mm)
+    c.setLineWidth(0.45)
+    c.line(x + sx * 2 * mm, y + sy * 2 * mm, x + sx * 5 * mm, y + sy * 2 * mm)
+    c.line(x + sx * 2 * mm, y + sy * 2 * mm, x + sx * 2 * mm, y + sy * 5 * mm)
+
+
+def _stars(c: canvas.Canvas, x: float, y: float) -> None:
+    c.setFillColor(colors.HexColor("#B7742C"))
+    for px, py, size in [
+        (0.20, 0.18, 0.55),
+        (0.76, 0.21, 0.45),
+        (0.32, 0.35, 0.35),
+        (0.86, 0.42, 0.55),
+        (0.15, 0.61, 0.45),
+        (0.70, 0.70, 0.35),
+        (0.25, 0.84, 0.35),
+        (0.80, 0.88, 0.5),
+    ]:
+        c.rect(x + CARD_W * px, y + CARD_H * py, size * mm, size * mm, stroke=0, fill=1)
+
+
+def _panel(c: canvas.Canvas, x: float, y: float, w: float, h: float) -> None:
+    c.setFillColor(colors.HexColor("#071326"))
+    c.setStrokeColor(GOLD)
+    c.setLineWidth(0.5)
+    c.roundRect(x, y, w, h, 1.7 * mm, stroke=1, fill=1)
+    c.setStrokeColor(colors.HexColor("#4F3217"))
+    c.setLineWidth(0.25)
+    c.roundRect(x + 1 * mm, y + 1 * mm, w - 2 * mm, h - 2 * mm, 1 * mm, stroke=1, fill=0)
+
+
+def _score_medallion(c: canvas.Canvas, x: float, y: float, text: str) -> None:
+    c.setFillColor(RED)
+    c.setStrokeColor(GOLD_LIGHT)
+    c.setLineWidth(0.75)
+    c.circle(x, y, 5.8 * mm, stroke=1, fill=1)
+    c.setStrokeColor(colors.HexColor("#7C1F20"))
     c.setLineWidth(0.35)
-    c.rect(x + 2 * mm, y + 2 * mm, CARD_W - 4 * mm, CARD_H - 4 * mm, stroke=1, fill=0)
+    c.circle(x, y, 4.5 * mm, stroke=1, fill=0)
+    _center_text(c, text, x, y - 1.7 * mm, 9.8, colors.white, bold=True, limit=4)
 
 
 def _image_or_placeholder(c: canvas.Canvas, path: str | None, x: float, y: float, w: float, h: float) -> None:
-    c.setFillColor(colors.HexColor("#D9DEE5"))
-    c.roundRect(x, y, w, h, 2 * mm, stroke=0, fill=1)
+    c.setFillColor(colors.HexColor("#09172B"))
+    c.setStrokeColor(GOLD)
+    c.setLineWidth(0.55)
+    c.roundRect(x, y, w, h, 2 * mm, stroke=1, fill=1)
     if not path or not Path(path).exists():
-        _center_text(c, "Splash Art", x + w / 2, y + h / 2, 9, colors.HexColor("#667085"), bold=True)
+        _center_text(c, "Splash Art", x + w / 2, y + h / 2, 9, colors.HexColor("#8FA6BD"), bold=True)
         return
     try:
         if Path(path).suffix.lower() == ".svg":
@@ -137,14 +196,26 @@ def _image_or_placeholder(c: canvas.Canvas, path: str | None, x: float, y: float
             scale = min(w / iw, h / ih)
             draw_w, draw_h = iw * scale, ih * scale
             c.drawImage(img, x + (w - draw_w) / 2, y + (h - draw_h) / 2, draw_w, draw_h, mask="auto")
+        c.setStrokeColor(GOLD_LIGHT)
+        c.setLineWidth(0.35)
+        c.roundRect(x + 0.8 * mm, y + 0.8 * mm, w - 1.6 * mm, h - 1.6 * mm, 1.3 * mm, stroke=1, fill=0)
     except Exception:
-        _center_text(c, "Imagem invalida", x + w / 2, y + h / 2, 8, colors.HexColor("#667085"), bold=True)
+        _center_text(c, "Imagem invalida", x + w / 2, y + h / 2, 8, colors.HexColor("#8FA6BD"), bold=True)
 
 
-def _center_text(c: canvas.Canvas, text: str, x: float, y: float, size: float, color: colors.Color, bold: bool = False) -> None:
+def _center_text(
+    c: canvas.Canvas,
+    text: str,
+    x: float,
+    y: float,
+    size: float,
+    color: colors.Color,
+    bold: bool = False,
+    limit: int = 27,
+) -> None:
     c.setFillColor(color)
     c.setFont("Helvetica-Bold" if bold else "Helvetica", size)
-    c.drawCentredString(x, y, _ellipsize(text, 27))
+    c.drawCentredString(x, y, _ellipsize(text, limit))
 
 
 def _wrapped_text(c: canvas.Canvas, text: str, x: float, y: float, w: float, h: float, size: float, color: colors.Color) -> None:
