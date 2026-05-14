@@ -33,7 +33,7 @@ from PySide6.QtWidgets import (
 
 from popper3.db import Card, DATA_DIR, Database, Deck
 from popper3.excel_io import create_template, read_game_cards
-from popper3.pdf_export import export_cards_pdf, export_report_pdf
+from popper3.pdf_export import export_cards_pdf, export_report_pdf, export_theory_report_pdf
 
 
 IMAGE_FILTER = "Imagens (*.png *.jpg *.jpeg *.svg)"
@@ -611,8 +611,10 @@ class MainWindow(QMainWindow):
         add_player.clicked.connect(lambda: self.new_card("player"))
         export_cards = QPushButton("PDF para impressao")
         export_cards.clicked.connect(self.export_cards)
-        export_report = QPushButton("Relatorio PDF")
+        export_report = QPushButton("Relatorio pseudocientista")
         export_report.clicked.connect(self.export_report)
+        export_theories = QPushButton("Relatorio de teorias")
+        export_theories.clicked.connect(self.export_theory_report)
         template_btn = QPushButton("Modelo Excel")
         template_btn.clicked.connect(self.create_excel_template)
         import_btn = QPushButton("Importar Excel")
@@ -629,6 +631,7 @@ class MainWindow(QMainWindow):
         top.addStretch()
         top.addWidget(template_btn)
         top.addWidget(import_btn)
+        top.addWidget(export_theories)
         top.addWidget(export_report)
         top.addWidget(export_cards)
         create = QHBoxLayout()
@@ -898,10 +901,29 @@ class MainWindow(QMainWindow):
         deck, cards = self.current_deck_and_cards()
         if not deck:
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Salvar relatorio", f"{deck.name} - relatorio.pdf", "PDF (*.pdf)")
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Salvar relatorio do pseudocientista",
+            f"{deck.name} - relatorio pseudocientista.pdf",
+            "PDF (*.pdf)",
+        )
         if path:
             export_report_pdf(deck, cards, path)
-            self.info("Relatorio PDF gerado.")
+            self.info("Relatorio do pseudocientista gerado.")
+
+    def export_theory_report(self) -> None:
+        deck, cards = self.current_deck_and_cards()
+        if not deck:
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Salvar relatorio de teorias",
+            f"{deck.name} - relatorio de teorias.pdf",
+            "PDF (*.pdf)",
+        )
+        if path:
+            export_theory_report_pdf(deck, cards, path)
+            self.info("Relatorio de teorias gerado.")
 
     def create_excel_template(self) -> None:
         path, _ = QFileDialog.getSaveFileName(self, "Salvar modelo", "modelo-importacao-popper3.xlsx", "Excel (*.xlsx)")

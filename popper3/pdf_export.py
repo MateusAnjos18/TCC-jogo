@@ -57,14 +57,46 @@ def export_cards_pdf(deck: Deck, cards: list[Card], path: str | Path) -> None:
 
 
 def export_report_pdf(deck: Deck, cards: list[Card], path: str | Path) -> None:
+    _export_theory_report(
+        deck,
+        cards,
+        path,
+        title=f"Relatorio do Pseudocientista - {deck.name}",
+        reveal_answers=True,
+    )
+
+
+def export_theory_report_pdf(deck: Deck, cards: list[Card], path: str | Path) -> None:
+    _export_theory_report(
+        deck,
+        cards,
+        path,
+        title=f"Relatorio de Teorias - {deck.name}",
+        reveal_answers=False,
+    )
+
+
+def _export_theory_report(
+    deck: Deck,
+    cards: list[Card],
+    path: str | Path,
+    title: str,
+    reveal_answers: bool,
+) -> None:
     styles = getSampleStyleSheet()
-    doc = SimpleDocTemplate(str(path), pagesize=A4, rightMargin=18 * mm, leftMargin=18 * mm)
-    story = [Paragraph(f"Relatorio de cartas - {deck.name}", styles["Title"]), Spacer(1, 8 * mm)]
-    data = [["Titulo", "Pontuacao", "Veracidade"]]
+    doc = SimpleDocTemplate(str(path), pagesize=A4, rightMargin=16 * mm, leftMargin=16 * mm)
+    story = [Paragraph(title, styles["Title"]), Spacer(1, 8 * mm)]
+    data = [["Teoria", "Pontuacao", "Veracidade"]]
     for card in cards:
         if card.card_type == "game":
-            data.append([card.title, str(card.score or 0), "Verdadeira" if card.truth else "Falsa"])
-    table = Table(data, colWidths=[110 * mm, 30 * mm, 34 * mm])
+            if reveal_answers:
+                score = str(card.score or 0)
+                truth = "Verdadeira" if card.truth else "Falsa"
+            else:
+                score = " " * 18
+                truth = " " * 22
+            data.append([card.title, score, truth])
+    table = Table(data, colWidths=[106 * mm, 34 * mm, 38 * mm], repeatRows=1)
     table.setStyle(
         TableStyle(
             [
@@ -74,6 +106,7 @@ def export_report_pdf(deck: Deck, cards: list[Card], path: str | Path) -> None:
                 ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#AAB2BD")),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F4F6F8")]),
+                ("LINEBELOW", (1, 1), (2, -1), 0.7, colors.HexColor("#253246")),
             ]
         )
     )
