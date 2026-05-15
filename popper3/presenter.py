@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -17,15 +17,38 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QFrame,
     QVBoxLayout,
     QWidget,
 )
 
-from popper3.app import CardPreview, ICON_RELATIVE_PATH, resource_path
+from popper3.app import ICON_RELATIVE_PATH, resource_path
 from popper3.db import Card, Database
 
 
 MAX_SELECTED_CARDS = 8
+
+
+class PresentationCard(QFrame):
+    def __init__(self, card: Card, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setObjectName("PresentationCard")
+
+        title = QLabel(card.title)
+        title.setObjectName("CardTitle")
+        title.setAlignment(Qt.AlignCenter)
+        title.setWordWrap(True)
+
+        description = QLabel(card.description or "Sem descricao.")
+        description.setObjectName("CardDescription")
+        description.setAlignment(Qt.AlignCenter)
+        description.setWordWrap(True)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(18, 16, 18, 16)
+        layout.setSpacing(12)
+        layout.addWidget(title)
+        layout.addWidget(description, 1)
 
 
 class FullscreenCardsDialog(QDialog):
@@ -33,19 +56,44 @@ class FullscreenCardsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Cartas selecionadas")
         self.setWindowIcon(QIcon(str(resource_path(ICON_RELATIVE_PATH))))
-        self.setStyleSheet("background: #030914;")
+        self.setStyleSheet(
+            """
+            QDialog { background: #030914; }
+            #PresentationCard {
+                background: #071326;
+                border: 2px solid #D99A3A;
+                border-radius: 14px;
+            }
+            #CardTitle {
+                color: #F4C46A;
+                font-family: "Segoe UI Variable", "Segoe UI";
+                font-size: 22pt;
+                font-weight: 800;
+            }
+            #CardDescription {
+                color: #F7EBC8;
+                font-family: "Segoe UI Variable", "Segoe UI";
+                font-size: 24pt;
+                font-weight: 650;
+                line-height: 125%;
+            }
+            QPushButton {
+                background: #2A5BDB; color: white; border: 1px solid rgba(244, 196, 106, 120); border-radius: 8px;
+                padding: 10px 16px; font-weight: 700;
+            }
+            """
+        )
 
         grid = QGridLayout()
-        grid.setContentsMargins(28, 28, 28, 28)
+        grid.setContentsMargins(28, 28, 28, 18)
         grid.setSpacing(18)
+        cols = 2 if len(cards) <= 4 else 4
 
         for index, card in enumerate(cards):
-            preview = CardPreview()
-            preview.setMinimumSize(220, 310)
-            preview.set_data(card.card_type, card.title, card.description, card.score, card.splash_path)
-            row = index // 4
-            col = index % 4
-            grid.addWidget(preview, row, col)
+            panel = PresentationCard(card)
+            row = index // cols
+            col = index % cols
+            grid.addWidget(panel, row, col)
 
         close_btn = QPushButton("Fechar")
         close_btn.clicked.connect(self.close)
@@ -146,9 +194,7 @@ class PresenterWindow(QMainWindow):
             return
         for card in self.db.cards(int(deck_id)):
             kind = "Jogo" if card.card_type == "game" else "Jogador"
-            score = f" | {card.score} pts" if card.card_type == "game" else ""
-            truth = " | verdadeira" if card.truth else " | falsa" if card.card_type == "game" else ""
-            item = QListWidgetItem(f"{kind}: {card.title}{score}{truth}")
+            item = QListWidgetItem(f"{kind}: {card.title}")
             item.setData(Qt.UserRole, card.id)
             self.cards_by_id[card.id] = card
             self.cards_list.addItem(item)
