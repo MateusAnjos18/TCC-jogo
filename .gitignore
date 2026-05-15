@@ -12,6 +12,7 @@ env/
 build/
 dist/
 dist_atualizado/
+dist_apresentador/
 *.spec.bak
 
 # Local app data and databases
