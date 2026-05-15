@@ -30,9 +30,15 @@ MAX_SELECTED_CARDS = 8
 
 
 class PresentationCard(QFrame):
-    def __init__(self, card: Card, parent: QWidget | None = None) -> None:
+    def __init__(self, card: Card, title_size: int, description_size: int, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setObjectName("PresentationCard")
+        self.setStyleSheet(
+            f"""
+            #CardTitle {{ font-size: {title_size}pt; }}
+            #CardDescription {{ font-size: {description_size}pt; }}
+            """
+        )
 
         title = QLabel(card.title)
         title.setObjectName("CardTitle")
@@ -45,8 +51,8 @@ class PresentationCard(QFrame):
         description.setWordWrap(True)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(18, 16, 18, 16)
-        layout.setSpacing(12)
+        layout.setContentsMargins(14, 12, 14, 12)
+        layout.setSpacing(8)
         layout.addWidget(title)
         layout.addWidget(description, 1)
 
@@ -67,50 +73,48 @@ class FullscreenCardsDialog(QDialog):
             #CardTitle {
                 color: #F4C46A;
                 font-family: "Segoe UI Variable", "Segoe UI";
-                font-size: 22pt;
                 font-weight: 800;
             }
             #CardDescription {
                 color: #F7EBC8;
                 font-family: "Segoe UI Variable", "Segoe UI";
-                font-size: 24pt;
                 font-weight: 650;
                 line-height: 125%;
-            }
-            QPushButton {
-                background: #2A5BDB; color: white; border: 1px solid rgba(244, 196, 106, 120); border-radius: 8px;
-                padding: 10px 16px; font-weight: 700;
             }
             """
         )
 
         grid = QGridLayout()
-        grid.setContentsMargins(28, 28, 28, 18)
-        grid.setSpacing(18)
-        cols = 2 if len(cards) <= 4 else 4
+        grid.setContentsMargins(22, 22, 22, 22)
+        grid.setSpacing(14)
+        cols, title_size, description_size = self.presentation_metrics(len(cards))
 
         for index, card in enumerate(cards):
-            panel = PresentationCard(card)
+            panel = PresentationCard(card, title_size, description_size)
             row = index // cols
             col = index % cols
             grid.addWidget(panel, row, col)
 
-        close_btn = QPushButton("Fechar")
-        close_btn.clicked.connect(self.close)
-
-        actions = QHBoxLayout()
-        actions.addStretch()
-        actions.addWidget(close_btn)
-
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(grid, 1)
-        layout.addLayout(actions)
+
+    def presentation_metrics(self, count: int) -> tuple[int, int, int]:
+        if count <= 2:
+            return 2, 24, 28
+        if count <= 4:
+            return 2, 20, 22
+        return 4, 15, 16
 
     def keyPressEvent(self, event) -> None:  # noqa: N802
         if event.key() == Qt.Key_Escape:
             self.close()
             return
         super().keyPressEvent(event)
+
+    def mouseDoubleClickEvent(self, event) -> None:  # noqa: N802
+        self.close()
+        super().mouseDoubleClickEvent(event)
 
 
 class PresenterWindow(QMainWindow):
